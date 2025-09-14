@@ -1,31 +1,42 @@
 # Requires: SSH and optional SSH agent on Windows
-# Usage: .\ssh-copy-id.ps1 -User "ubuntu" -RemoteHost "10.74.90.100"
+# Usage: .\ssh-copy-id "ubuntu@10.74.90.100"
 
 param(
-    [Parameter(Mandatory = $true)] [string]$User,
-    [Parameter(Mandatory = $true)] [string]$RemoteHost
+    [Parameter(Mandatory = $true)]
+    [string]$Target
 )
 
+# Validate and split target
+if ($Target -notmatch "^(.+)@(.+)$") {
+    Write-Error "[FAIL] Target must be in format user@host"
+    exit 1
+}
+$User, $RemoteHost = $matches[1], $matches[2]
+
 $winUser = $env:USERNAME
-$pattern = "${User}@${RemoteHost}"
+$pattern = "$User@$RemoteHost"
 
 # Get key from agent and append Windows username at the end
 $selectedKey = ssh-add -L | Where-Object { $_ -match $pattern } | ForEach-Object { "$_ [$winUser]" }
-
 if (-not $selectedKey) {
-    Write-Error "[FAIL] No key found in ssh-agent with pattern '$pattern'"
+    Write-Error "[FAIL] No key found in ssh-agent for '$pattern'"
     exit 1
 }
 
 Write-Host "[INFO] Found matching key: $selectedKey"
 
-# Remote command: ensure .ssh and authorized_keys exist, append key if missing
+# Remote authorized_keys path
+$authKeys = "~/.ssh/authorized_keys"
+
+# Prepare remote command
 $remoteCmd = @"
 mkdir -p ~/.ssh
 chmod 700 ~/.ssh
-touch ~/.ssh/authorized_keys
-chmod 600 ~/.ssh/authorized_keys
-grep -qxF '$selectedKey' ~/.ssh/authorized_keys || echo '$selectedKey' >> ~/.ssh/authorized_keys
+touch $authKeys
+chmod 600 $authKeys
+# Ensure last line ends with newline
+[ -s $authKeys ] && tail -c1 $authKeys | read -r _ || echo >> $authKeys
+grep -qxF '$selectedKey' $authKeys || echo '$selectedKey' >> $authKeys
 "@ -replace "`r",""
 
 # Execute SSH forcing password authentication

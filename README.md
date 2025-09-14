@@ -29,7 +29,7 @@ This PowerShell script adds an SSH public key from your local `ssh-agent` to a r
 
 ```powershell
 # Basic usage
-.\ssh-copy-id.ps1 -User "ubuntu" -RemoteHost "10.74.90.100"
+.\ssh-copy-id ubuntu@10.74.90.100
 ```
 
 ## ©️ Copyright
