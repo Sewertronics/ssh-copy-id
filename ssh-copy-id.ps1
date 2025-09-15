@@ -34,8 +34,10 @@ mkdir -p ~/.ssh
 chmod 700 ~/.ssh
 touch $authKeys
 chmod 600 $authKeys
-# Ensure last line ends with newline
-[ -s $authKeys ] && tail -c1 $authKeys | read -r _ || echo >> $authKeys
+# Ensure last line ends with newline only if file is non-empty
+if [ -s $authKeys ]; then
+    tail -c1 $authKeys | read -r _ || echo >> $authKeys
+fi
 grep -qxF '$selectedKey' $authKeys || echo '$selectedKey' >> $authKeys
 "@ -replace "`r",""
 
