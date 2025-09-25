@@ -19,7 +19,8 @@ $pattern = "$User@$RemoteHost"
 # Get key from agent and append Windows username at the end
 $selectedKey = ssh-add -L | Where-Object { $_ -match $pattern } | ForEach-Object { "$_ [$winUser]" }
 if (-not $selectedKey) {
-    Write-Error "[FAIL] No key found in ssh-agent for '$pattern'"
+    Write-Error "[FAIL] No matching SSH key found in ssh-agent for '$pattern'.
+    Tip: Make sure your key is loaded into the Bitwarden SSH agent and that its name includes the server identifier (e.g., '$pattern')."
     exit 1
 }
 

@@ -24,12 +24,16 @@ This PowerShell script adds an SSH public key from your local `ssh-agent` to a r
 - 🔧 SSH installed (`ssh` command available)
 - 🗝 Optional: SSH agent running with keys loaded (e.g., via Bitwarden)
 - 🌐 Remote server accessible over SSH
+- 🔑 Ensure your SSH key is added to the **Bitwarden SSH agent** (it has to be enabled - [Settings -> Enable SSH agent](https://bitwarden.com/help/ssh-agent/#enable-ssh-agent))
+  <br /><span style="color: orange">👉 **Important**: The key’s name must include the server identifier (e.g., `ubuntu@10.74.90.100`)</span>
 
-## 🚀 Usage
+## 🚀 Usage in Windows (PowerShell)
 
 ```powershell
 # Basic usage
-.\ssh-copy-id ubuntu@10.74.90.100
+git clone git@github.com:Sewertronics/ssh-copy-id.git
+cd ssh-copy-id
+.\ssh-copy-id.ps1 ubuntu@10.74.90.100
 ```
 
 ## ©️ Copyright
