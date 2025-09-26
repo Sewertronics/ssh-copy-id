@@ -1,4 +1,4 @@
-# Requires: SSH and optional SSH agent on Windows
+# Requires: SSH and SSH agent running on Windows
 # Usage: .\ssh-copy-id "ubuntu@10.74.90.100"
 
 param(
@@ -6,21 +6,13 @@ param(
     [string]$Target
 )
 
-# Validate and split target
-if ($Target -notmatch "^(.+)@(.+)$") {
-    Write-Error "[FAIL] Target must be in format user@host"
-    exit 1
-}
-$User, $RemoteHost = $matches[1], $matches[2]
-
 $winUser = $env:USERNAME
-$pattern = "$User@$RemoteHost"
 
 # Get key from agent and append Windows username at the end
-$selectedKey = ssh-add -L | Where-Object { $_ -match $pattern } | ForEach-Object { "$_ [$winUser]" }
+$selectedKey = ssh-add -L | Where-Object { $_ -match $Target } | ForEach-Object { "$_ [$winUser]" }
 if (-not $selectedKey) {
-    Write-Error "[FAIL] No matching SSH key found in ssh-agent for '$pattern'.
-    Tip: Make sure your key is loaded into the Bitwarden SSH agent and that its name includes the server identifier (e.g., '$pattern')."
+    Write-Error "[FAIL] No matching SSH key found in ssh-agent for '$Target'.
+    Tip: Make sure your key is loaded into the Bitwarden SSH agent and that its name includes the server identifier (e.g., '$Target')."
     exit 1
 }
 
@@ -43,10 +35,10 @@ grep -qxF '$selectedKey' $authKeys || echo '$selectedKey' >> $authKeys
 "@ -replace "`r",""
 
 # Execute SSH forcing password authentication
-ssh -o PubkeyAuthentication=no "$User@$RemoteHost" $remoteCmd
+ssh -o PubkeyAuthentication=no "$Target" $remoteCmd
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "[OK] Key ensured on $User@$RemoteHost"
+    Write-Host "[OK] Key ensured on $Target"
 } else {
-    Write-Error "[FAIL] Could not update key on $User@$RemoteHost"
+    Write-Error "[FAIL] Could not update key on $Target"
 }
